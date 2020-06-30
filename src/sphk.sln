@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sphk", "sphk\sphk.csproj", "{E3B34BFD-F119-41A1-A374-55972A0ABBC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sphk_gui", "sphk_gui\sphk_gui.csproj", "{2A4618F6-6E3A-4F54-B9DB-D176FFFB1D50}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3B34BFD-F119-41A1-A374-55972A0ABBC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3B34BFD-F119-41A1-A374-55972A0ABBC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3B34BFD-F119-41A1-A374-55972A0ABBC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3B34BFD-F119-41A1-A374-55972A0ABBC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A4618F6-6E3A-4F54-B9DB-D176FFFB1D50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A4618F6-6E3A-4F54-B9DB-D176FFFB1D50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A4618F6-6E3A-4F54-B9DB-D176FFFB1D50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A4618F6-6E3A-4F54-B9DB-D176FFFB1D50}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
