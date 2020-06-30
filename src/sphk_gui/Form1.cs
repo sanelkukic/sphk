@@ -27,7 +27,8 @@ namespace sphk_gui
     public partial class Form1 : Form
     {
         // Create a publicly accessible boolean that determines if we're in debug mode
-        public bool is_debug;
+        public static bool is_debug = false;
+        private SpamForm _form = new SpamForm(is_debug);
         public Form1()
         {
             InitializeComponent();
@@ -148,15 +149,8 @@ namespace sphk_gui
             else
             {
                 // If the user cancels the SaveFileDialog by clicking the Cancel button, show a warning
-                DialogResult res = MessageBox.Show("An error was encountered when trying to open the dialog.",
+                MessageBox.Show("Please select a file to save the config to!",
                     "Oops", MessageBoxButtons.OK, MessageBoxIcon.Question);
-                switch (res)
-                {
-                    // And then once the user acknowledges the warning, close the Form
-                    default:
-                        Close();
-                        break;
-                }
             }
         }
 
@@ -165,14 +159,18 @@ namespace sphk_gui
         private void debugModeCheck_CheckedChanged(object sender, EventArgs e)
         {
             // If the debug mode checkbox is checked, set the is_debug boolean to true
+            // and set the is_debug property in our SpamForm instance to false
             if (debugModeCheck.Checked)
             {
                 is_debug = true;
+                _form.is_debug = true;
             }
             // If the debug mode checkbox is not checked, set the is_debug boolean to false
+            // and set the is_debug property in our SpamForm instance to false
             else
             {
                 is_debug = false;
+                _form.is_debug = false;
             }
         }
 
@@ -180,11 +178,9 @@ namespace sphk_gui
         // in the GUI
         private void startSpamButton_Click_1(object sender, EventArgs e)
         {
-            // Create a new instance of the SpamForm and display it
-            // The SpamForm handles everything from here in it's Load event handler
-            // so this is all we need to do here.
-            SpamForm form = new SpamForm();
-            form.ShowDialog();
+            // Use the instance of SpamForm we created at the very beginning
+            // and call it's ShowDialog method
+            _form.ShowDialog();
         }
     }
 }

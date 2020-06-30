@@ -17,6 +17,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -27,18 +28,34 @@ namespace sphk_gui
 {
     public partial class SpamForm : Form
     {
-        // Get the debug boolean directly from Form1
-        private bool is_debug = new Form1().is_debug;
+        // boolean to store debug mode flag, defaults to false
+        public bool is_debug = false;
+        
         // Define cli_process as a new Process object we'll use later
         private Process cli_process;
-        public SpamForm()
+        public SpamForm(bool _is_debug)
         {
             InitializeComponent();
+            // if a debug mode flag set to true is passed in the constructor, then set the
+            // debug mode boolean is_debug in this form to true
+            //
+            // the way i managed to get Form1 and SpamForm to communicate with each other is to
+            // have an event handler in Form1, and to create a new instance of SpamForm in the scope of
+            // the entire Form1 class, and then updating the is_debug property of the SpamForm instance
+            // anytime the event handler fires
+            //
+            // sounds hacky but it works
+            if (is_debug)
+            {
+                is_debug = _is_debug;
+            }
         }
         
 
         private void SpamForm_Load(object sender, EventArgs e)
         {
+            // clear all text from the commandLineOutputBox control
+            commandlineOutputBox.Clear();
             // As soon as the form is loaded, open the OpenFileDialog
             if (openConfigDialog.ShowDialog() == DialogResult.OK)
             {
@@ -92,7 +109,7 @@ namespace sphk_gui
             else
             {
                 // This warning will show if the user cancels the OpenFileDialog by clicking the Cancel button
-                DialogResult res = MessageBox.Show("An error was encountered while trying to open the dialog",
+                DialogResult res = MessageBox.Show("Please select a file!",
                     "Oops", MessageBoxButtons.OK, MessageBoxIcon.Question);
                 switch (res)
                 {
@@ -158,16 +175,176 @@ namespace sphk_gui
             // We likely don't need the StringBuilder at all and we might be able to just
             // call AppendText on the RichTextBox control directly, but I guess it's better to
             // be safe than sorry
-            StringBuilder builder = new StringBuilder();
-            builder.Append("\nExiting...");
-            commandlineOutputBox.AppendText(builder.ToString());
-            cli_process.Kill();
-            this.Close();
+            try
+            {
+                StringBuilder builder = new StringBuilder();
+                builder.Append("\nExiting...");
+                commandlineOutputBox.AppendText(builder.ToString());
+                // if the sphk.exe process is not null (to avoid NullReferenceExceptions)
+                if (cli_process != null)
+                {
+                    // AND the process has not already exited on its own
+                    if (!cli_process.HasExited)
+                    {
+                        // forcefully kill it
+                        cli_process.Kill();
+                    }
+
+                    // and then close the currently open window
+                    Close();
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // this exception is thrown when the process has already exited, which fixes
+                // issue #1
+                // we should just ignore the exception and close the form, since sphk.exe has
+                // already been killed or has exited on its own
+                //
+                // but if we're in debug mode, show an exception stack trace to the user
+                if (is_debug)
+                {
+                    MessageBox.Show(ex.ToString(), "Error killing sphk.exe process", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+
+                // and then close the form/window
+                Close();
+            }
+            catch (Win32Exception ex)
+            {
+                // this exception handler will take care of any situation where
+                // the process could not be terminated for whatever reason
+                //
+                // in this situation, we'll show a nice and user-friendly error message
+                // (optionally with the exception stack trace appended to it if debug mode is on)
+                // and exit the program forcefully
+                //
+                if (is_debug)
+                {
+                    // show an error to the user containing the exception stacktrace
+                    MessageBox.Show(ex.ToString(), "Error killing sphk.exe process", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+
+                // otherwise just close the current window gracefully
+                Close();
+            }
+            catch (Exception ex)
+            {
+                // this exception handler will take care of any other exception that the above 2 handlers
+                // cannot
+                //
+                // it really just does the exact same thing as the ones above.
+                //
+                // a string to store our error message in
+                string error_msg = "Failed to terminate sphk.exe process.";
+                if (is_debug)
+                {
+                    // append the exception stacktrace to the error message if we're in debug mode
+                    error_msg += "\n" + ex.ToString();
+                }
+
+                // show the message box to the user
+                DialogResult res = MessageBox.Show(error_msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                switch (res)
+                {
+                    // once the user acknowledges the message box, forcefully exit the entire application
+                    default:
+                        Environment.Exit(1);
+                        break;
+                }
+            }
         }
 
-        private void SpamForm_FormClosing(object sender, EventArgs e)
+        private void SpamForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            cli_process.Kill();
+            // clear the contents of the output log textbox
+            commandlineOutputBox.Clear();
+            try
+            {
+                // if the sphk.exe process is not null
+                if (cli_process != null)
+                {
+                    // and if it hasn't already exited on its own
+                    if (!cli_process.HasExited)
+                    {
+                        // then kill it
+                        cli_process.Kill();
+                    }
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // this exception handler fixes issue #1
+                //
+                // if we're in debug mode
+                if (is_debug)
+                {
+                    // show an error to the user containing the exception stacktrace
+                    MessageBox.Show(ex.ToString(), "Error killing sphk.exe process", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+
+                // otherwise just close the current window gracefully
+                Close();
+            }
+            catch (Win32Exception ex)
+            {
+                // if we're in debug mode
+                if (is_debug)
+                {
+                    // show an error to the user containing the exception stacktrace
+                    MessageBox.Show(ex.ToString(), "Error killing sphk.exe process", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+
+                // otherwise just close the current window gracefully
+                Close();
+            }
+            catch (NullReferenceException ex)
+            {
+                // fixes an issue where cancelling the OpenFileDialog results in a
+                // NullReferenceException when the form closes
+                // 
+                // this exception was being thrown because I was not checking if cli_process was null
+                // and when you don't select a config file, it is null
+                //
+                // and trying to access the HasExited property or trying to call .Kill on a null object
+                // obviously throws a NullReferenceException
+                if (is_debug)
+                {
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close the form window
+                Close();
+            }
+            catch (Exception ex)
+            {
+                // this exception handler will take care of any other exception that the above 2 handlers
+                // cannot
+                //
+                // it really just does the exact same thing as the ones above.
+                //
+                // a string to store our error message in
+                string error_msg = "Failed to terminate sphk.exe process.";
+                if (is_debug)
+                {
+                    // append the exception stacktrace to the error message if we're in debug mode
+                    error_msg += "\n" + ex.ToString();
+                }
+
+                // show the message box to the user
+                DialogResult res = MessageBox.Show(error_msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                switch (res)
+                {
+                    // once the user acknowledges the message box, forcefully exit the entire application
+                    default:
+                        Environment.Exit(1);
+                        break;
+                }
+            }
         }
     }
 }

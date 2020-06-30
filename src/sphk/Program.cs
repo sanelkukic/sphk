@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 
 namespace sphk
@@ -34,10 +35,17 @@ namespace sphk
         // The program's entrypoint
         public static void Main(string[] args)
         {
+            // welcome and version information
+            Version _version = Assembly.GetExecutingAssembly().GetName().Version;
+            string __version = $@"{_version.Major}.{_version.Minor}.{_version.Build}.{_version.Revision}";
+            Console.WriteLine("sphk");
+            Console.WriteLine($"CLI version {__version}");
+            Console.WriteLine("Copyright 2020 3reetop");
+            Console.WriteLine("Licensed under the terms of the MIT License");
+            Console.WriteLine("-----------------------");
             // If we did not specify any commandline arguments, show a basic help message and exit with code 1
             if (args.Length == 0)
             {
-                Console.WriteLine("SpamHook version 4, by 3reetop\n");
                 Console.WriteLine("Please specify the location of your .json configuration file!\n");
                 Console.WriteLine("If you want to generate a file, run this program with the 'generate' command.");
                 Console.WriteLine(
@@ -226,6 +234,7 @@ namespace sphk
             timeout_length = timeout_length * 1000;
 
             // If the user wants to spam this webhook forever (which is what -1 means)
+            string output = "";
             if (times_to_spam == -1)
             {
                 // Create an integer holding the number of the request we're currently on
@@ -241,20 +250,35 @@ namespace sphk
                     if (status == 0)
                     {
                         // Print a success message to standard output
-                        Console.WriteLine($@"Successfully sent request {request_number}");
+                        output = $@"Successfully sent request {request_number}";
+                        if (_debug)
+                        {
+                            output += " (204 No Content response)";
+                        }
+                        Console.WriteLine(output);
                     }
                     // Otherwise, if the value of the status integer is 1, meaning we reached Discord's
                     // ratelimit
                     else if (status == 1)
                     {
+                        output = $@"We've hit the ratelimit on request number {request_number}";
+                        if (_debug)
+                        {
+                            output += " (429 Too Many Requests response)";
+                        }
                         // Print a ratelimit warning to standard output
-                        Console.WriteLine($@"We've hit the ratelimit on request number {request_number}");
+                        Console.WriteLine(output);
                     }
                     // Otherwise, if the value of the status integer is 2, meaning the request failed
                     else if (status == 2)
                     {
+                        output = $@"An error was encountered when trying to send request {request_number}";
+                        if (_debug)
+                        {
+                            output += " (400 Bad Request response)";
+                        }
                         // Print a failure message to standard output
-                        Console.WriteLine($@"An error was encountered when trying to send request {request_number}");
+                        Console.WriteLine(output);
                     }
                     // Usually, you shouldn't be able to reach this block of code below
                     // But if you somehow do, might as well put a nice little easter egg in there, eh?
@@ -287,23 +311,38 @@ namespace sphk
                     // was successful
                     if (status == 0)
                     {
+                        output = $@"Successfully sent request {i} out of {times_to_spam}";
+                        if (_debug)
+                        {
+                            output += " (204 No Content response)";
+                        }
                         // Then print a success message to standard output
-                        Console.WriteLine($@"Successfully sent request {i} out of {times_to_spam}");
+                        Console.WriteLine(output);
                     }
                     // Otherwise, if the return code from SendRequest() was 1, meaning
                     // that we hit Discord's rate limit
                     else if (status == 1)
                     {
+                        output = $@"We've hit the ratelimit on request number {i} out of {times_to_spam}";
+                        if (_debug)
+                        {
+                            output += " (429 Too Many Requests response)";
+                        }
                         // Then print a ratelimit warning to standard output
-                        Console.WriteLine($@"We've hit the ratelimit on request number {i} out of {times_to_spam}");
+                        Console.WriteLine(output);
                     }
                     // Otherwise, if the return code from SendRequest() was 2, meaning the
                     // request was a failure
                     else if (status == 2)
                     {
+                        output = $@"An error was encountered when trying to send request {i} out of {times_to_spam}";
+                        if (_debug)
+                        {
+                            output += " (400 Bad Request response)";
+                        }
                         // Then print a failure message to standard output
                         Console.WriteLine(
-                            $@"An error was encountered when trying to send request {i} out of {times_to_spam}");
+                            output);
                     }
                     // Usually, you shouldn't be able to reach this block of code below
                     // But, if you somehow do, might as well put a nice little easter egg in there, eh?
