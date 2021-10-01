@@ -40,7 +40,7 @@ namespace sphk
             string __version = $@"{_version.Major}.{_version.Minor}.{_version.Build}.{_version.Revision}";
             Console.WriteLine("sphk");
             Console.WriteLine($"CLI version {__version}");
-            Console.WriteLine("Copyright 2020 3reetop");
+            Console.WriteLine("Copyright 2021 Sanel Kukic");
             Console.WriteLine("Licensed under the terms of the MIT License");
             Console.WriteLine("-----------------------");
             // If we did not specify any commandline arguments, show a basic help message and exit with code 1
@@ -49,7 +49,7 @@ namespace sphk
                 Console.WriteLine("Please specify the location of your .json configuration file!\n");
                 Console.WriteLine("If you want to generate a file, run this program with the 'generate' command.");
                 Console.WriteLine(
-                    "For more information and for help using this program, visit https://discord.gg/ds3rXE6");
+                    "For more information and for help using this program, visit https://discord.gg/NSVPhwn9rG");
                 Environment.Exit(1);
             }
             

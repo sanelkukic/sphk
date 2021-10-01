@@ -89,7 +89,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(202, 99);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Copyright 2020 3reetop.\r\nLicensed under the terms of the MIT License.\r\n\r\nMade wit" + "h love.";
+            this.label2.Text = "Copyright 2021 Sanel Kukic.\r\nLicensed under the terms of the MIT License.\r\n\r\nMade wit" + "h love.";
             // 
             // versionLabel
             // 
